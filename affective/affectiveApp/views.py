@@ -1,11 +1,9 @@
-from django.http import HttpResponse
 from django.shortcuts import render
-from .models import *
-from django.core.mail import EmailMessage
 from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
 import cv2
 import threading
+import dlib
 
 @gzip.gzip_page
 def index(request):
@@ -28,6 +26,15 @@ class VideoCamera(object):
 
     def get_frame(self):
         image = self.frame
+        detector = dlib.get_frontal_face_detector()
+        faces = detector(image)
+
+        for face in faces:
+            # Getting the x1,y1 and x2,y2 coordinates of the face detected
+            x1, y1, x2, y2 = face.left(), face.top(), face.right(), face.bottom()
+
+            image = cv2.rectangle(image, (x1, y1), (x2, y2), (255,0,0), 1)
+
         _, jpeg = cv2.imencode('.jpg', image)
         return jpeg.tobytes()
 

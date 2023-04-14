@@ -1,5 +1,4 @@
 asgiref==3.6.0
-certifi @ file:///C:/b/abs_85o_6fm0se/croot/certifi_1671487778835/work/certifi
 Django==4.2
 numpy==1.24.2
 opencv-python==4.7.0.72
