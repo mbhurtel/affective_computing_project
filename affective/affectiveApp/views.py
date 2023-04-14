@@ -4,6 +4,8 @@ from django.http import StreamingHttpResponse
 import cv2
 import threading
 import dlib
+from django.core.paginator import Paginator
+from . models import Song
 
 @gzip.gzip_page
 def index(request):
@@ -47,3 +49,11 @@ def gen(camera):
         frame = camera.get_frame()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        
+
+def index(request):
+    paginator= Paginator(Song.objects.all(),1)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    context={"page_obj":page_obj}
+    return render(request,"index.html",context)
