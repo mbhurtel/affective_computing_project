@@ -2,6 +2,23 @@ import cv2
 import dlib
 from screeninfo import get_monitors
 import threading
+from copy import deepcopy
+import numpy as np
+
+
+def get_resolution():
+    for m in get_monitors():
+        if m.is_primary:
+            h, w = m.height, m.width
+    return h, w
+
+
+def process_frame(image):
+    image = cv2.resize(image, None, fx=0.4, fy=0.4)
+    detector = dlib.get_frontal_face_detector()
+    faces = detector(image)
+
+    return len(faces)
 
 
 class VideoCamera(object):
@@ -19,11 +36,12 @@ class VideoCamera(object):
     def __del__(self):
         self.video.release()
 
+    # We perform our image processing here
     def get_frame(self):
         image = self.frame
         img_h, img_w, _ = image.shape
-        # h, w = get_resolution()
-        num_faces = process_frame(image.copy())
+        num_faces = process_frame(deepcopy(image))
+
         image = cv2.putText(image,
                             f'Faces Detected: {num_faces}',
                             (int(0.1*img_w), int(0.1*img_h)),
@@ -33,6 +51,8 @@ class VideoCamera(object):
                             2,
                             cv2.LINE_AA)
 
+        image = cv2.resize(image, None, fx=1.5, fy=1.5)
+        print(image.shape)
         _, jpeg = cv2.imencode('.jpeg', image)
         return jpeg.tobytes()
 
@@ -47,21 +67,3 @@ def gen(camera):
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
-def get_resolution():
-    for m in get_monitors():
-        if m.is_primary:
-            h, w = m.height, m.width
-    return h, w
-
-
-def process_frame(image):
-    image = cv2.resize(image, None, fx=0.4, fy=0.4)
-    detector = dlib.get_frontal_face_detector()
-    faces = detector(image)
-
-    # for face in faces:
-    #     # Getting the x1,y1 and x2,y2 coordinates of the face detected
-    #     x1, y1, x2, y2 = face.left(), face.top(), face.right(), face.bottom()
-    #     image = cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0, 0), 1)
-
-    return len(faces)

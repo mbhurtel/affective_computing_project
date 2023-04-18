@@ -3,7 +3,7 @@ from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
 from django.core.paginator import Paginator
 from . models import Song
-import utils as ut
+from . import utils as ut
 
 
 # Page to display the camera video (first index page)
@@ -11,11 +11,12 @@ import utils as ut
 def index(request):
     try:
         cam = ut.VideoCamera()
-        return StreamingHttpResponse(gen(cam), content_type="multipart/x-mixed-replace;boundary=frame")
-        # return StreamingHttpResponse(gen(cam), content_type="image/jpeg")
-    except:
+        return StreamingHttpResponse(ut.gen(cam), content_type="multipart/x-mixed-replace;boundary=frame")
+    except Exception:
+        print(f"Oops: {Exception}")
         pass
     return render(request, 'index.html')
+
 
 # Page to play music
 def play(request):
