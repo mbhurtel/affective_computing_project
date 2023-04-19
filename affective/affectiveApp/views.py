@@ -7,8 +7,15 @@ import dlib
 from django.core.paginator import Paginator
 from . models import Song
 
-@gzip.gzip_page
 def index(request):
+    paginator = Paginator(Song.objects.all(), 1)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    context = {"page_obj": page_obj}
+    return render(request, "index.html", context=context)
+
+@gzip.gzip_page
+def live(request):
     try:
         cam = VideoCamera()
         return StreamingHttpResponse(gen(cam), content_type="multipart/x-mixed-replace;boundary=frame")
@@ -39,14 +46,12 @@ class VideoCamera(object):
     def get_frame(self):
         image = self.frame
         image = self.process_frame(image)
-
         _, jpeg = cv2.imencode('.jpg', image)
         return jpeg.tobytes()
 
     def update(self):
         while True:
             (self.grabbed, self.frame) = self.video.read()
-
 
 def gen(camera):
     while True:
