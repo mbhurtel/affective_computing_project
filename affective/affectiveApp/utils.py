@@ -3,8 +3,11 @@ import dlib
 from screeninfo import get_monitors
 import threading
 from copy import deepcopy
+import tensorflow as tf
+import numpy as np
 
-
+my_model = tf.keras.models.load_model("affectiveApp/custom_augmented_50.h5")
+Classes = ["angry" , "disgust" , "fear", "happy", "neutral", "sad", "surprise"]
 def get_resolution():
     for m in get_monitors():
         if m.is_primary:
@@ -23,12 +26,23 @@ def detect_faces(image):
 
     return image, faces
 
-
-def detect_facial_emotion(faces):
+def detect_facial_emotion(clone, faces):
     # TODO: Facial Emotion Recognition Code Here
     emotion_list = []
+  
     for face in faces:
-        emotion = "neutral"
+        print("Face Type: ",type(face))
+        print("Face: ",face)
+        face_image = clone[face.top():face.bottom(), face.left():face.right()]
+        img = cv2.resize(face_image, (48, 48))
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        X = np.array(img).reshape(-1, 48, 48, 1)
+        X = X / 255.0
+        print(X.shape)
+        predicted_emotion = my_model.predict(X)
+
+        emotion = Classes[np.argmax(predicted_emotion)]
+        print(f"Detected Emotion {emotion}")
         emotion_list.append(emotion)
     return emotion_list
 
@@ -161,7 +175,7 @@ class VideoCamera(object):
             # We check the final emotions every 5 seconds
             if not len(self.emotion_list) == self.fps * 1:
                 image, faces = detect_faces(deepcopy(image))  # detecting number of faces
-                frame_emotions = detect_facial_emotion(faces)
+                frame_emotions = detect_facial_emotion(deepcopy(image), faces)
                 self.emotion_list += frame_emotions
             else:
                 self.final_emotion = get_final_max_pred(self.emotion_list)
@@ -178,7 +192,7 @@ class VideoCamera(object):
         if len(self.hand_gesture_list) == self.fps * 2:
             self.final_hand_gesture = get_final_max_pred(self.hand_gesture_list)
 
-        image = cv2.resize(image, None, fx=1.5, fy=1.5)  # resizing the video frame to 1080P
+        image = cv2.resize(image, None, fx=1, fy=1)  # resizing the video frame to 1080P
         _, jpeg = cv2.imencode('.jpeg', image)
         return jpeg.tobytes()
 
