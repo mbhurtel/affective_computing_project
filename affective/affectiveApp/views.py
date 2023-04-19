@@ -13,7 +13,7 @@ def index(request):
         cam = ut.VideoCamera()
         return StreamingHttpResponse(ut.gen(cam), content_type="multipart/x-mixed-replace;boundary=frame")
     except Exception:
-        print(f"Oops: {Exception}")
+        print(f"Oops!: {Exception}")
         pass
     return render(request, 'index.html')
 
