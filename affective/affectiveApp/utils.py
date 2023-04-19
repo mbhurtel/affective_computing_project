@@ -26,6 +26,13 @@ def detect_faces(image):
 
     return image, faces
 
+def preprocess_image(img):
+    img = cv2.resize(img, (48, 48))
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    X = np.array(img).reshape(-1, 48, 48, 1)
+    X = X / 255.0
+    return X
+
 def detect_facial_emotion(clone, faces):
     # TODO: Facial Emotion Recognition Code Here
     emotion_list = []
@@ -34,13 +41,8 @@ def detect_facial_emotion(clone, faces):
         print("Face Type: ",type(face))
         print("Face: ",face)
         face_image = clone[face.top():face.bottom(), face.left():face.right()]
-        img = cv2.resize(face_image, (48, 48))
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        X = np.array(img).reshape(-1, 48, 48, 1)
-        X = X / 255.0
-        print(X.shape)
-        predicted_emotion = my_model.predict(X)
-
+        img = preprocess_image(face_image)
+        predicted_emotion = my_model.predict(img)
         emotion = Classes[np.argmax(predicted_emotion)]
         print(f"Detected Emotion {emotion}")
         emotion_list.append(emotion)
