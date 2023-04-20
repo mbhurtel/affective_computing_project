@@ -123,6 +123,26 @@
             music.pause()
         }
     }
+
+    function incrementVolume(){
+        const music = document.querySelector("#music-player > #music-player_html5")
+        if(music){
+            const newVol = music.volume + 0.2
+            music.volume = newVol >= 1 ? 1 : newVol        
+        }
+    }
+
+    function decrementVolume(){
+        const music = document.querySelector("#music-player > #music-player_html5")
+        if(music){
+            const newVol = music.volume - 0.2
+            music.volume = newVol <= 0 ? 0 : newVol
+        }
+    }
+
+    let initialExpression = ""
+    let initialHandGesture = ""
+
     const handleGestures = (gesture) => {
         switch(gesture){
             case "play":
@@ -136,11 +156,22 @@
                 break
             case "prev":
                 prevMusic()
-                break        
+                break 
+            case "volume_up":
+                incrementVolume()
+                break
+            case "volume_down":
+                decrementVolume()
+                break
+            case "reset":
+                initialExpression = ""
+                initialHandGesture = ""
+                location.reload()
+                break
+            default:
+                break
         }
     }
-
-    let initialExpression = ""
 
     const eventsource = new EventSource("{% url 'message' %}")
     eventsource.onopen = () => {
@@ -156,6 +187,11 @@
                 if(data.is_music_on){
                     playMusic()
                 }
+            }
+
+            if(data.final_hand_gesture && initialHandGesture != data.final_hand_gesture){
+                initialHandGesture = data.final_hand_gesture
+                handleGestures(data.final_hand_gesture)
             }
             console.log(data)
         }
