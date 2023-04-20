@@ -1,5 +1,5 @@
 import cv2
-import dlib
+import mediapipe as mp
 from screeninfo import get_monitors
 import threading
 from copy import deepcopy
@@ -8,6 +8,8 @@ import numpy as np
 
 my_model = tf.keras.models.load_model("affectiveApp/custom_augmented_50.h5")
 Classes = ["angry" , "disgust" , "fear", "happy", "neutral", "sad", "surprise"]
+
+
 def get_resolution():
     for m in get_monitors():
         if m.is_primary:
@@ -15,16 +17,20 @@ def get_resolution():
     return h, w
 
 
-def detect_faces(image):
-    # image = cv2.resize(image, None, fx=0.4, fy=0.4)
-    detector = dlib.get_frontal_face_detector()
-    faces = detector(image)
-    for face in faces:
-        # Getting the x1,y1 and x2,y2 coordinates of the face detected
-        x1, y1, x2, y2 = face.left(), face.top(), face.right(), face.bottom()
-        image = cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0, 0), 1)
+def detect_faces(image, face_detect):
+    h, w, _ = image.shape
+    img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    faces = face_detect.process(img_rgb)
+    face_coords = []
+    for face_det in faces.detections:
+        bb = face_det.location_data.relative_bounding_box
+        xmin, ymin = int(bb.xmin * w), int(bb.ymin * h)
+        xmax, ymax = xmin + int(bb.width * w), ymin + int(bb.height * h)
+        face_coords.append([xmin, xmax, ymin, ymax])
+        cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (255, 0, 0), 2)
 
-    return image, faces
+    return image, face_coords
+
 
 def preprocess_image(img):
     img = cv2.resize(img, (48, 48))
@@ -33,11 +39,13 @@ def preprocess_image(img):
     X = X / 255.0
     return X
 
+
 def detect_facial_emotion(clone, faces):
     # TODO: Facial Emotion Recognition Code Here
     emotion_list = []
     for face in faces:
-        face_image = clone[face.top():face.bottom(), face.left():face.right()]
+        # face_image = clone[face.top():face.bottom(), face.left():face.right()]
+        face_image = clone[face[2]:face[3], face[0]:face[1]]
         if len(face_image):
             img = preprocess_image(face_image)
             predicted_emotion = my_model.predict(img)
@@ -53,9 +61,10 @@ def get_final_max_pred(pred_cat_list):
     return max(pred_cat_count, key=pred_cat_count.get)
 
 
-def check_hand_detection(image):
-    # TODO: Here we use the hand detecteion xml to check whether a hand is detected or not
-    return False
+def check_hand_detection(image, hand_detect):
+    img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    results = hand_detect.process(img_rgb)
+    return True if results else False
 
 
 def detect_hand_gesture(hand_bbox):
@@ -63,11 +72,11 @@ def detect_hand_gesture(hand_bbox):
     return "pause"
 
 
-def get_hand_gesture_and_annotate(image):
+def get_hand_gesture_and_annotate(image, face_detect):
     img_h, img_w, _ = image.shape
 
     play_text = "Playing a song for you. Enjoy..."
-    # print(play_text)
+    print(play_text)
     image = cv2.putText(image,
                         play_text,
                         (int(0.06 * img_w), int(0.1 * img_h)),
@@ -87,7 +96,7 @@ def get_hand_gesture_and_annotate(image):
                           thickness=2)
 
     # Check whether a hand is detected in the given frame or not
-    is_hand_detected = check_hand_detection(image)
+    is_hand_detected = check_hand_detection(image, face_detect)
 
     # hand is detected then we check the hand_gesture
     if not is_hand_detected:
@@ -103,7 +112,7 @@ def get_hand_gesture_and_annotate(image):
         hand_detect_text = "Hand detected! Checking gesture..."
         hand_text_color = (0, 0, 255)
 
-    # print(hand_detect_text)
+    print(hand_detect_text)
     image = cv2.putText(image,
                         hand_detect_text,
                         (int(hand_bbox_coords[0][0] - (0.02 * img_w)), int(hand_bbox_coords[0][0] - (0.02 * img_w))),
@@ -150,6 +159,9 @@ class VideoCamera(object):
 
         self.fps = self.video.get(cv2.CAP_PROP_FPS)
 
+        self.face_detect = mp.solutions.face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.5)
+        self.hand_detect = mp.solutions.hands.Hands()  # Default parameters are set
+
         self.start_face_count = 0
         self.emotion_list = []
         self.final_emotion = None
@@ -173,8 +185,8 @@ class VideoCamera(object):
 
         if not self.is_music_on:
             # We check the final emotions every 5 seconds
-            if not len(self.emotion_list) == self.fps * 1:
-                image, faces = detect_faces(deepcopy(image))  # detecting number of faces
+            if not len(self.emotion_list) == self.fps * 5:
+                image, faces = detect_faces(deepcopy(image), self.face_detect)  # detecting number of faces
                 frame_emotions = detect_facial_emotion(deepcopy(image), faces)
                 self.emotion_list += frame_emotions
             else:
@@ -187,7 +199,7 @@ class VideoCamera(object):
 
         # We extract the isMusicPlaying flag from the frontend
         if self.is_music_on:
-            image, is_hand_detected, hand_gesture = get_hand_gesture_and_annotate(image)
+            image, is_hand_detected, hand_gesture = get_hand_gesture_and_annotate(image, self.face_detect)
 
         if len(self.hand_gesture_list) == self.fps * 2:
             self.final_hand_gesture = get_final_max_pred(self.hand_gesture_list)
