@@ -36,16 +36,13 @@ def preprocess_image(img):
 def detect_facial_emotion(clone, faces):
     # TODO: Facial Emotion Recognition Code Here
     emotion_list = []
-  
     for face in faces:
-        print("Face Type: ",type(face))
-        print("Face: ",face)
         face_image = clone[face.top():face.bottom(), face.left():face.right()]
-        img = preprocess_image(face_image)
-        predicted_emotion = my_model.predict(img)
-        emotion = Classes[np.argmax(predicted_emotion)]
-        print(f"Detected Emotion {emotion}")
-        emotion_list.append(emotion)
+        if len(face_image):
+            img = preprocess_image(face_image)
+            predicted_emotion = my_model.predict(img)
+            emotion = Classes[np.argmax(predicted_emotion)]
+            emotion_list.append(emotion)
     return emotion_list
 
 
@@ -70,7 +67,7 @@ def get_hand_gesture_and_annotate(image):
     img_h, img_w, _ = image.shape
 
     play_text = "Playing a song for you. Enjoy..."
-    print(play_text)
+    # print(play_text)
     image = cv2.putText(image,
                         play_text,
                         (int(0.06 * img_w), int(0.1 * img_h)),
@@ -106,7 +103,7 @@ def get_hand_gesture_and_annotate(image):
         hand_detect_text = "Hand detected! Checking gesture..."
         hand_text_color = (0, 0, 255)
 
-    print(hand_detect_text)
+    # print(hand_detect_text)
     image = cv2.putText(image,
                         hand_detect_text,
                         (int(hand_bbox_coords[0][0] - (0.02 * img_w)), int(hand_bbox_coords[0][0] - (0.02 * img_w))),
@@ -208,3 +205,11 @@ def gen(camera):
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
+def hasChanged(data1, data2):
+    if type(data1) == type(data2):
+        if (data1['final_emotion'] == data2["final_emotion"]
+                and data1['final_hand_gesture'] == data2["final_hand_gesture"]
+                and data1['is_music_on'] == data2["is_music_on"]
+            ):
+            return False
+    return True

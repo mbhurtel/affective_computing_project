@@ -37,7 +37,7 @@
         </article> 
         <aside>
             <div class="music-player">
-                {% for item in page_obj %}
+               {% for item in page_obj %}
                     <div class="cover">
                         <img alt="" src="{{item.image.url}}"/>
                     </div>
@@ -51,14 +51,18 @@
                     </div>
                     <center><a href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% endif %}"><i class="fa fa-step-backward fa-2x"></i></a> &nbsp; &nbsp; &nbsp; <a href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }} {% endif %}"><i class="fa fa-step-forward fa-2x"></i></a></center>
                     <div class="lecteur">
-                        <audio class="fc-media" style="width: 100%;" id="music-player" muted="true">
+                        <audio class="fc-media" style="width: 100%;" id="music-player" volume="0.3">
                             <source src="{% if item.audio_file %}{{item.audio_file.url}} {% else %} {{item.audio_link}} {% endif %}" type="audio/mp3"/>
                         </audio>
-
                     </div>
-            {% endfor %}
+            {% endfor %} 
             </div>
         </aside>
+        </div>
+        <form action="{% url 'fetch_song' %}"  style="display :none;" method="GET"> 
+            <input name="emotion" id="emotion_text" style="display :none;">
+            <button id="fetch_song" type="button" value="Click" style="display: none;"/>
+        </form>
     </div>
    </body>
   </html>
@@ -67,5 +71,103 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/4.2.7/mediaelement-and-player.min.js"></script> 
   <script src="{% static './script.js' %}">
   </script>
+<script>  
+   
+
+    function playMusic(){
+        const music = document.querySelector("#music-player > #music-player_html5")
+        console.log(music)
+        console.log("VOlume : ", music.volume)
+        if(music){
+            music.volume = 0.3
+            console.log("Playing Music")
+            music.play()
+        }
+    }
+    {% comment %} const m = music.getElementById("music-player_html5") {% endcomment %}
+
+    const createContent = (item) => {
+        return `<div class="cover">
+                    <img alt="" src="${item.image}"/>
+                </div>
+                <div class="titre">
+                    <h3>
+                    ${item.artist}
+                    </h3>s
+                    <h1>
+                    ${item.title}
+                    </h1>
+                </div>
+                <center><a href="${ item.has_previous ? '?page=' + item.previous_page_number :""}><i class="fa fa-step-backward fa-2x"></i></a> &nbsp; &nbsp; &nbsp; <a href="${ item.has_next ? '?page=' + item.next_page_number : ""}"><i class="fa fa-step-forward fa-2x"></i></a></center>
+                <div class="lecteur">
+                    <audio class="fc-media" style="width: 100%;" id="music-player" muted="muted">
+                        <source src="${ item.audio_file ? item.audio_file.url : item.audio_link}" type="audio/mp3"/>
+                    </audio>
+                </div>
+                `
+    }
+    function nextMusic(){
+        nextBut = document.getElementsByClassName("fa-step-forward")
+        nextBut.click()
+    }
+    function prevMusic(){
+        prevBut = document.getElementsByClassName("fa-step-backward")
+        prevBut.click()
+    }
+    function pauseMusic(){
+        {% comment %} const music = document.getElementById("music-player") {% endcomment %}
+        const music = document.querySelector("#music-player > #music-player_html5")
+
+        console.log(music)
+        if(music){
+            music.pause()
+        }
+    }
+    const handleGestures = (gesture) => {
+        switch(gesture){
+            case "play":
+                playMusic()
+                break
+            case "pause":
+                pauseMusic()
+                break
+            case "next":
+                nextMusic()
+                break
+            case "prev":
+                prevMusic()
+                break        
+        }
+    }
+
+    let initialExpression = ""
+
+    const eventsource = new EventSource("{% url 'message' %}")
+    eventsource.onopen = () => {
+        console.log("Event Source Open")
+    }
+
+    eventsource.onmessage = (e) => {
+        console.log("Receiving message")
+        if(e.data){
+            const data = JSON.parse(e.data)
+            if(data.final_emotion && initialExpression != data.final_emotion){
+                initialExpression = data.final_emotion
+                if(data.is_music_on){
+                    playMusic()
+                }
+            }
+            console.log(data)
+        }
+    }
+    {% comment %} document.getElementById("emotion_text").innerHTML = data.final_emotion
+    document.getElementById("fetch_song").click() {% endcomment %}
+
+    eventsource.onerror = (e) => {
+        console.log("Error Message")
+        console.log(e)
+    }
+</script> 
+
  </body>
 </html>

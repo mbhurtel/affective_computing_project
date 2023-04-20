@@ -1,12 +1,6 @@
 
-// var music = document.getElementById("music-player")
+var music = document.getElementById("music-player")
 
-function playMusic(){
-    if(music){
-        music.muted = true
-        music.play();
-    }
-}
 var audio = {    
     init: function() {        
     var $that = this;        
@@ -25,7 +19,8 @@ var audio = {
                     timeAndDurationSeparator: '<span></span>',
                     iPadUseNativeControls: true,
                     iPhoneUseNativeControls: true,
-                    AndroidUseNativeControls: true                
+                    AndroidUseNativeControls: true   ,
+                    volume : 0.2             
                 });            
             }        
         },
@@ -34,16 +29,6 @@ var audio = {
 };
 
 audio.init();
-
-function next(){
-    nextBut = document.getElementsByClassName("fa-step-forward")
-    nextBut.click()
-}
-
-function prev(){
-    prevBut = document.getElementsByClassName("fa-step-backward")
-    prevBut.click()
-}
 
 
 // (setTimeout(playMusic, 1000));
@@ -114,3 +99,18 @@ function prev(){
 // }
 
 // setTimeout(() => { getExpression() }, 2000);
+
+
+// songs = data.songs
+// console.log("Songs Received: ", songs)
+// if(songs.length > 0){
+//     console.log("Creating Content for songs")
+//     var content= ""
+//     songs.forEach((song) => {
+//         content += createContent(song)
+//     })
+//     let music_container = document.getElementById("music-player-container")
+//     print("Music Container ", music_container)
+//     music_container.innerHTML = content
+//     console.log("Content Updated")
+// }
