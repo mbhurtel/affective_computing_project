@@ -157,6 +157,7 @@ class VideoCamera(object):
         self.hand_gesture_list = []
         self.final_hand_gesture = None
         self.is_hand_detected = True
+        self.reloaded = False
 
         (self.grabbed, self.frame) = self.video.read()
         threading.Thread(target=self.update, args=()).start()
@@ -207,9 +208,8 @@ def gen(camera):
 
 def hasChanged(data1, data2):
     if type(data1) == type(data2):
-        if (data1['final_emotion'] == data2["final_emotion"]
-                and data1['final_hand_gesture'] == data2["final_hand_gesture"]
-                and data1['is_music_on'] == data2["is_music_on"]
-            ):
-            return False
+        for k in data2.keys():
+            if data1.get(k, "") != data2[k]:
+                return True
+        return False
     return True

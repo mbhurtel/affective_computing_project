@@ -49,7 +49,15 @@
                         {{item.title}}
                         </h1>
                     </div>
-                    <center><a href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% endif %}"><i class="fa fa-step-backward fa-2x"></i></a> &nbsp; &nbsp; &nbsp; <a href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }} {% endif %}"><i class="fa fa-step-forward fa-2x"></i></a></center>
+                    <center>
+                        <a id="play-prev" href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% endif %}">
+                            <i class="fa fa-step-backward fa-2x"></i>
+                        </a>
+                         &nbsp; &nbsp; &nbsp; 
+                         <a id="play-next" href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }} {% endif %}">
+                            <i class="fa fa-step-forward fa-2x"></i>
+                        </a>
+                    </center>
                     <div class="lecteur">
                         <audio class="fc-media" style="width: 100%;" id="music-player" volume="0.3">
                             <source src="{% if item.audio_file %}{{item.audio_file.url}} {% else %} {{item.audio_link}} {% endif %}" type="audio/mp3"/>
@@ -74,16 +82,6 @@
 <script>  
    
 
-    function playMusic(){
-        const music = document.querySelector("#music-player > #music-player_html5")
-        console.log(music)
-        console.log("VOlume : ", music.volume)
-        if(music){
-            music.volume = 0.3
-            console.log("Playing Music")
-            music.play()
-        }
-    }
     {% comment %} const m = music.getElementById("music-player_html5") {% endcomment %}
 
     const createContent = (item) => {
@@ -106,20 +104,32 @@
                 </div>
                 `
     }
+    function playMusic(){
+        const music = document.querySelector("#music-player > #music-player_html5")
+        console.log(music)
+        if(music?.paused){
+            console.log("Playing Music")
+            debugger
+            music.play()
+        }
+    }
     function nextMusic(){
-        nextBut = document.getElementsByClassName("fa-step-forward")
-        nextBut.click()
+        nextBut = document.querySelector("#play-next")
+        if(nextBut){
+            nextBut.click()
+        }
     }
     function prevMusic(){
-        prevBut = document.getElementsByClassName("fa-step-backward")
-        prevBut.click()
+        prevBut = document.querySelector("#play-prev")
+        if(prevBut){
+            prevBut.click()
+        }
     }
     function pauseMusic(){
-        {% comment %} const music = document.getElementById("music-player") {% endcomment %}
         const music = document.querySelector("#music-player > #music-player_html5")
 
         console.log(music)
-        if(music){
+        if(!music?.paused){
             music.pause()
         }
     }
@@ -182,14 +192,25 @@
         console.log("Receiving message")
         if(e.data){
             const data = JSON.parse(e.data)
-            if(data.final_emotion && initialExpression != data.final_emotion){
+            console.log(initialExpression)
+            if(data.reloaded){
+                debugger
                 initialExpression = data.final_emotion
+                initialHandGesture = data.final_hand_gesture
                 if(data.is_music_on){
                     playMusic()
                 }
             }
+            console.log(String(initialExpression) === String(data.final_emotion))
+            if(data.final_emotion && String(initialExpression) != String(data.final_emotion)){
+                debugger;
+                initialExpression = data.final_emotion
+                console.log(initialExpression)
+                debugger;
+                location.reload() 
+            }
 
-            if(data.final_hand_gesture && initialHandGesture != data.final_hand_gesture){
+            if(data.final_hand_gesture && (String(initialHandGesture) !== String(data.final_hand_gesture))){
                 initialHandGesture = data.final_hand_gesture
                 handleGestures(data.final_hand_gesture)
             }

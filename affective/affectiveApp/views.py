@@ -13,6 +13,7 @@ cam = ut.VideoCamera()
 
 def index(request):
     if cam and cam.final_emotion:
+        cam.reloaded = True
         paginator = Paginator(Song.objects.filter(genre=cam.final_emotion), 1)
         print("Updating Index with emotion: ", cam.final_emotion)
     else:
@@ -39,7 +40,8 @@ def event_stream():
         data = {
             "final_emotion": cam.final_emotion,
             "is_music_on": cam.is_music_on,
-            'final_hand_gesture' : cam.final_hand_gesture
+            'final_hand_gesture' : cam.final_hand_gesture,
+            "reloaded" : cam.reloaded
         }
         
         # if cam.final_emotion:
