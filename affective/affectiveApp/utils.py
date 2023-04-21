@@ -22,12 +22,13 @@ def detect_faces(image, face_detect):
     img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     faces = face_detect.process(img_rgb)
     face_coords = []
-    for face_det in faces.detections:
-        bb = face_det.location_data.relative_bounding_box
-        xmin, ymin = int(bb.xmin * w), int(bb.ymin * h)
-        xmax, ymax = xmin + int(bb.width * w), ymin + int(bb.height * h)
-        face_coords.append([xmin, xmax, ymin, ymax])
-        cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (255, 0, 0), 2)
+    if faces.detections:
+        for face_det in faces.detections:
+            bb = face_det.location_data.relative_bounding_box
+            xmin, ymin = int(bb.xmin * w), int(bb.ymin * h)
+            xmax, ymax = xmin + int(bb.width * w), ymin + int(bb.height * h)
+            face_coords.append([xmin, xmax, ymin, ymax])
+            cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (255, 0, 0), 2)
 
     return image, face_coords
 
