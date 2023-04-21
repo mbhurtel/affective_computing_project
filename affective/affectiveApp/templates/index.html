@@ -178,6 +178,8 @@
                 initialHandGesture = ""
                 location.reload()
                 break
+            case "others":
+                break
             default:
                 break
         }
@@ -203,10 +205,8 @@
             }
             console.log(String(initialExpression) === String(data.final_emotion))
             if(data.final_emotion && String(initialExpression) != String(data.final_emotion)){
-                debugger;
                 initialExpression = data.final_emotion
                 console.log(initialExpression)
-                debugger;
                 location.reload() 
             }
 
