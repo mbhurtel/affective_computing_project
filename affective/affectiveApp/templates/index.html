@@ -150,15 +150,15 @@
         }
     }
 
-    let initialExpression = ""
-    let initialHandGesture = ""
-
     const handleGestures = (gesture) => {
         switch(gesture){
             case "play":
                 playMusic()
                 break
             case "pause":
+                pauseMusic()
+                break
+            case "stop":
                 pauseMusic()
                 break
             case "next":
@@ -179,6 +179,8 @@
                 location.reload()
                 break
             case "others":
+                debugger
+                
                 break
             default:
                 break
@@ -194,27 +196,22 @@
         console.log("Receiving message")
         if(e.data){
             const data = JSON.parse(e.data)
-            console.log(initialExpression)
-            if(data.reloaded){
+            console.log(data)
+            if(data.reloaded
+             && data.is_music_on
+              && !data.final_emotion
+               && (!data.final_hand_gesture || data.final_hand_gesture == "play")){
                 debugger
-                initialExpression = data.final_emotion
-                initialHandGesture = data.final_hand_gesture
-                if(data.is_music_on){
-                    playMusic()
-                }
+                playMusic()   
             }
-            console.log(String(initialExpression) === String(data.final_emotion))
-            if(data.final_emotion && String(initialExpression) != String(data.final_emotion)){
-                initialExpression = data.final_emotion
-                console.log(initialExpression)
+
+            if(data.final_emotion){
                 location.reload() 
             }
 
-            if(data.final_hand_gesture && (String(initialHandGesture) !== String(data.final_hand_gesture))){
-                initialHandGesture = data.final_hand_gesture
+            if(data.final_hand_gesture && data.is_music_on){
                 handleGestures(data.final_hand_gesture)
             }
-            console.log(data)
         }
     }
     {% comment %} document.getElementById("emotion_text").innerHTML = data.final_emotion

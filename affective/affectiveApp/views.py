@@ -15,7 +15,9 @@ def index(request):
     if cam and cam.final_emotion:
         cam.reloaded = True
         paginator = Paginator(Song.objects.filter(genre=cam.final_emotion), 1)
-        print("Updating Index with emotion: ", cam.final_emotion)
+        print("Sending Songs for emotion: ", cam.final_emotion)
+        cam.final_emotion = None
+        # cam.final_hand_gesture = None
     else:
         paginator = Paginator(Song.objects.all(), 1)
     page_number = request.GET.get('page')
@@ -35,7 +37,7 @@ def live(request):
     return render(request, 'index.html')
 
 def event_stream():
-    initial_data = ""
+    initial_data = {}
     while True:
         data = {
             "final_emotion": cam.final_emotion,
@@ -47,7 +49,8 @@ def event_stream():
         # if cam.final_emotion:
         #     data["songs"] = list(Song.objects.filter(genre=cam.final_emotion).values())
         
-
+        print("Final Hand Gesture:", cam.final_hand_gesture)
+        print("Previous Hand Gesture: ", initial_data.get("final_hand_gesture", "None"))
         if ut.hasChanged(initial_data, data):
             initial_data = data
             data = json.dumps(data)

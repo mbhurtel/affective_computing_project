@@ -31,12 +31,13 @@ def detect_faces(image):
 
 
 def preprocess_image(img):
-    print(img)
-    print(img.shape)
+    # print(img)
+    # print(img.shape)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = cv2.resize(img, (48, 48))
     X = np.array(img).reshape(-1, 48, 48, 1)
     X = X / 255.0
+
     return X
 
 
@@ -83,7 +84,6 @@ def get_hand_gesture_and_annotate(image):
     img_h, img_w, _ = image.shape
 
     play_text = "Playing a song for you. Enjoy..."
-    print(play_text)
     image = cv2.putText(image,
                         play_text,
                         (int(0.06 * img_w), int(0.1 * img_h)),
@@ -105,7 +105,7 @@ def get_hand_gesture_and_annotate(image):
 
     # hand is detected then we check the hand_gesture
     if not is_hand_detected:
-        hand_gesture = "No gesture"
+        hand_gesture = "others"
         hand_text_color = (0, 0, 255)
     else:
         hand_text_color = (0, 255, 0)
@@ -191,20 +191,24 @@ class VideoCamera(object):
                 self.emotion_list += frame_emotions
             else:
                 self.final_emotion = get_final_max_pred(self.emotion_list)
-                print(f"Your emotion is: {self.final_emotion}. Now playing music...")
                 self.is_music_on = True
 
-        if not self.final_emotion:
+        if not self.final_emotion and not self.is_music_on:
             image = annotate_initials(image, len(faces), img_w, img_h)  # annotating the video frames for face detection
 
         # We extract the isMusicPlaying flag from the frontend
         if self.is_music_on:
             image, hand_gesture = get_hand_gesture_and_annotate(image)
-            if hand_gesture != "others":
+            # if hand_gesture != "others":
+            if len(self.hand_gesture_list) != self.fps * 1:
                 self.hand_gesture_list.append(hand_gesture)
+                self.final_hand_gesture = None
+            else:
+                self.final_hand_gesture = get_final_max_pred(self.hand_gesture_list)
+                self.hand_gesture_list = []
+                print(f"Your emotion is: {self.final_emotion}. Now playing music...")
 
-        if len(self.hand_gesture_list) == self.fps * 2:
-            self.final_hand_gesture = get_final_max_pred(self.hand_gesture_list)
+
 
         # image = cv2.resize(image, None, fx=1, fy=1)  # resizing the video frame to 1080P
         _, jpeg = cv2.imencode('.jpeg', image)
