@@ -11,6 +11,7 @@ from django.views import View
 
 cam = ut.VideoCamera()
 
+
 def index(request):
     if cam and cam.final_emotion:
         cam.reloaded = True
@@ -23,6 +24,7 @@ def index(request):
     context = {"page_obj": page_obj}
     return render(request, "index.html", context=context)
 
+
 @gzip.gzip_page
 def live(request):
     try:
@@ -34,19 +36,19 @@ def live(request):
         pass
     return render(request, 'index.html')
 
+
 def event_stream():
     initial_data = ""
     while True:
         data = {
             "final_emotion": cam.final_emotion,
             "is_music_on": cam.is_music_on,
-            'final_hand_gesture' : cam.final_hand_gesture,
-            "reloaded" : cam.reloaded
+            'final_hand_gesture': cam.final_hand_gesture,
+            "reloaded": cam.reloaded
         }
         
         # if cam.final_emotion:
         #     data["songs"] = list(Song.objects.filter(genre=cam.final_emotion).values())
-        
 
         if ut.hasChanged(initial_data, data):
             initial_data = data
@@ -54,12 +56,14 @@ def event_stream():
             yield "\ndata: {} \n\n".format(data)
         time.sleep(1)
 
+
 class MesssageStreamView(View):
     @csrf_exempt
     def get(self, request):
         response = StreamingHttpResponse(event_stream())
         response["Content-Type"] = 'text/event-stream'
         return response
+
 
 # Page to play music
 def play(request):
@@ -75,6 +79,7 @@ def play(request):
 #     uri = json.loads(request.body)['image_uri']
 #     expression = getExpression(uri)
 #     return JsonResponse({"mood": expression})
+
 
 def fetch_songs(request):
     print("Fetching Songs")
