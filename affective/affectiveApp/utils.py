@@ -31,12 +31,11 @@ def detect_faces(image):
 
 
 def preprocess_image(img):
-    print(img)
-    print(img.shape)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = cv2.resize(img, (48, 48))
     X = np.array(img).reshape(-1, 48, 48, 1)
     X = X / 255.0
+
     return X
 
 
@@ -49,7 +48,7 @@ def detect_facial_emotion(clone, faces):
         # print(face_image)
         if len(face_image):
             img = preprocess_image(face_image)
-            predicted_emotion = ct.emotion_detector.predict(img)
+            predicted_emotion = ct.emotion_detector.predict(img, verbose=False)
             emotion = ct.emotions_classes[np.argmax(predicted_emotion)]
             emotion_list.append(emotion)
     return emotion_list
@@ -62,54 +61,94 @@ def get_final_max_pred(pred_cat_list):
     return max(pred_cat_count, key=pred_cat_count.get)
 
 
-def check_hand_detection(hand_bbox):
+def detect_hands_and_landmarks(hand_bbox, hand_no=0):
     img_rgb = cv2.cvtColor(hand_bbox, cv2.COLOR_BGR2RGB)
     results = ct.hand_detect.process(img_rgb)
-    return True if results.multi_hand_landmarks else False
+    lm_dict = {}
+    if results.multi_hand_landmarks:
+        is_hand_detected = True
+        hand = results.multi_hand_landmarks[hand_no]
+        for ID, lm in enumerate(hand.landmark):
+            h, w, c = hand_bbox.shape
+            cx, cy = int(lm.x * w), int(lm.y * h)
+            lm_dict[ID] = (cx, cy)
+        for hand_lmks in results.multi_hand_landmarks:
+            ct.hand_draw.draw_landmarks(hand_bbox, hand_lmks, ct.mp_hands.HAND_CONNECTIONS)
+
+    return lm_dict, hand_bbox
 
 
-def detect_hand_gesture(img):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    img = cv2.resize(img, (28,28))
-    view_image = np.expand_dims(img, axis=2)
-    test_image = view_image[np.newaxis, ...]
-    preds = ct.gesture_detector.predict(test_image, verbose=0)
-    pred_class = ct.letters_map[np.argmax(preds, axis=1)[0]]
-    music_class = ct.music_btn_cls[pred_class] if pred_class in ct.music_btn_cls.keys() else "others"
-    return music_class
+def detect_hand_gesture(lm_dict):
+    check_play_stop = []
+    check_thumbs_prev_next = []
+    check_pause = []
+    check_reset = []
+    for ID, (_, cy) in lm_dict.items():
+        if ID != 4:
+            if lm_dict[ID][1] > lm_dict[4][1]:
+                check_play_stop.append(True)
+            else:
+                check_play_stop.append(False)
+
+            if lm_dict[ID][0] > lm_dict[4][0]:
+                check_thumbs_prev_next.append(True)
+            else:
+                check_thumbs_prev_next.append(False)
+
+        if lm_dict[6][1] > lm_dict[7][1] > lm_dict[8][1]:
+            if ID not in [6, 7, 8]:
+                if lm_dict[ID][1] > lm_dict[6][1]:
+                    check_pause.append(True)
+                else:
+                    check_pause.append(False)
+
+        if ID != 12:
+            if lm_dict[ID][1] > lm_dict[12][1]:
+                check_reset.append(True)
+            else:
+                check_reset.append(False)
+
+    hand_gesture = ""
+    if check_play_stop:
+        if all(check_play_stop):
+            hand_gesture = "play"  # thumbs up
+        if not any(check_play_stop):
+            hand_gesture = "stop"  # thumbs down
+
+    if check_thumbs_prev_next:
+        if all(check_thumbs_prev_next):
+            hand_gesture = "prev"  # thumbs left
+        if not any(check_thumbs_prev_next):
+            hand_gesture = "next"  # thumbs right
+
+    if check_pause:
+        if all(check_pause):
+            hand_gesture = "pause"  # only fore finger up
+
+    if check_reset:
+        if all(check_reset):
+            hand_gesture = "reset"  # talk to my hands
+
+    return hand_gesture
 
 
-def get_hand_gesture_and_annotate(image):
+def get_hand_gesture_and_annotate(image, hand_bbox_coords):
     img_h, img_w, _ = image.shape
-
-    play_text = "Playing a song for you. Enjoy..."
-    print(play_text)
-    image = cv2.putText(image,
-                        play_text,
-                        (int(0.06 * img_w), int(0.1 * img_h)),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1,
-                        (255, 0, 0),
-                        2,
-                        cv2.LINE_AA)
-
-    hand_bbox_coords = (int(0.05 * img_w), int(0.3 * img_h)), \
-                       (int(0.3 * img_w), int(0.7 * img_h))
 
     # Extracting the bounding box of the hand_region
     hand_bbox = image[hand_bbox_coords[0][1]: hand_bbox_coords[1][1],
                       hand_bbox_coords[0][0]: hand_bbox_coords[1][0]]
 
     # Check whether a hand is detected in the given frame or not
-    is_hand_detected = check_hand_detection(hand_bbox)
+    lm_dict, hand_bbox = detect_hands_and_landmarks(hand_bbox)
 
     # hand is detected then we check the hand_gesture
-    if not is_hand_detected:
-        hand_gesture = "No gesture"
+    if not lm_dict:
+        hand_gesture = None
         hand_text_color = (0, 0, 255)
     else:
         hand_text_color = (0, 255, 0)
-        hand_gesture = detect_hand_gesture(hand_bbox)
+        hand_gesture = detect_hand_gesture(lm_dict)
 
     image = cv2.rectangle(image,
                           hand_bbox_coords[0],
@@ -122,7 +161,7 @@ def get_hand_gesture_and_annotate(image):
                         (int(hand_bbox_coords[0][0]), int(hand_bbox_coords[0][1] - (0.05 * img_h))),
                         cv2.FONT_HERSHEY_SIMPLEX,
                         1,
-                        hand_text_color,
+                        (0, 255, 0),
                         2,
                         cv2.LINE_AA)
 
@@ -168,7 +207,6 @@ class VideoCamera(object):
         self.is_music_on = False
         self.hand_gesture_list = []
         self.final_hand_gesture = None
-        self.is_hand_detected = True
         self.reloaded = False
 
         (self.grabbed, self.frame) = self.video.read()
@@ -181,30 +219,53 @@ class VideoCamera(object):
     def get_frame(self):
         image = self.frame
         img_h, img_w, _ = image.shape
+        hand_bbox_pos = "right"
+
+        if hand_bbox_pos == "right":
+            w_scale = (0.7, 0.95)
+        else:
+            w_scale = (0.05, 0.30)
+
+        hand_bbox_coords = (int(w_scale[0] * img_w), int(0.3 * img_h)), \
+                           (int(w_scale[1] * img_w), int(0.7 * img_h))
+
         image = cv2.flip(image, 1)  # flipping to remove the mirror effect
 
         if not self.is_music_on:
             # We check the final emotions every 5 seconds
-            if not len(self.emotion_list) == self.fps * 5:
+            if not len(self.emotion_list) == self.fps * 2:
                 image, faces = detect_faces(deepcopy(image))  # detecting number of faces
                 frame_emotions = detect_facial_emotion(deepcopy(image), faces)
                 self.emotion_list += frame_emotions
             else:
                 self.final_emotion = get_final_max_pred(self.emotion_list)
-                print(f"Your emotion is: {self.final_emotion}. Now playing music...")
                 self.is_music_on = True
+                self.final_hand_gesture = "play"
 
-        if not self.final_emotion:
+        if not self.final_emotion and not self.is_music_on:
             image = annotate_initials(image, len(faces), img_w, img_h)  # annotating the video frames for face detection
 
         # We extract the isMusicPlaying flag from the frontend
         if self.is_music_on:
-            image, hand_gesture = get_hand_gesture_and_annotate(image)
-            if hand_gesture != "others":
-                self.hand_gesture_list.append(hand_gesture)
+            image, hand_gesture = get_hand_gesture_and_annotate(image, hand_bbox_coords)
 
-        if len(self.hand_gesture_list) == self.fps * 2:
-            self.final_hand_gesture = get_final_max_pred(self.hand_gesture_list)
+            if len(self.hand_gesture_list) != self.fps * 1 and hand_gesture:
+                self.hand_gesture_list.append(hand_gesture)
+            elif len(self.hand_gesture_list) == self.fps * 1:
+                self.final_hand_gesture = get_final_max_pred(self.hand_gesture_list)
+                self.hand_gesture_list = []
+                print(f"Your emotion is: {self.final_emotion}. Now playing music...")
+
+        if self.final_hand_gesture:
+            play_text = ct.play_prompts[self.final_hand_gesture]
+            image = cv2.putText(image,
+                                play_text,
+                                (int(0.06 * img_w), int(0.1 * img_h)),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                1,
+                                (255, 0, 0),
+                                2,
+                                cv2.LINE_AA)
 
         # image = cv2.resize(image, None, fx=1, fy=1)  # resizing the video frame to 1080P
         _, jpeg = cv2.imencode('.jpeg', image)

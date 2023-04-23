@@ -12,16 +12,20 @@ from django.views import View
 cam = ut.VideoCamera()
 
 def index(request):
-    if cam and cam.final_emotion:
-        cam.reloaded = True
+    page_number = request.GET.get('page')
+    if (cam and cam.final_emotion):
         paginator = Paginator(Song.objects.filter(genre=cam.final_emotion), 1)
-        print("Updating Index with emotion: ", cam.final_emotion)
+        cam.final_hand_gesture = "play"  # To make the music play initially when fetched for the first time. 
+        print("Sending Songs for emotion: ", cam.final_emotion)
     else:
         paginator = Paginator(Song.objects.all(), 1)
-    page_number = request.GET.get('page')
+        # cam.reloaded = False
+        print("Sending all Songs")
+
     page_obj = paginator.get_page(page_number)
     context = {"page_obj": page_obj}
     return render(request, "index.html", context=context)
+
 
 @gzip.gzip_page
 def live(request):
@@ -34,25 +38,29 @@ def live(request):
         pass
     return render(request, 'index.html')
 
+
 def event_stream():
-    initial_data = ""
+    initial_data = {}
     while True:
         data = {
             "final_emotion": cam.final_emotion,
             "is_music_on": cam.is_music_on,
-            'final_hand_gesture' : cam.final_hand_gesture,
-            "reloaded" : cam.reloaded
+            'final_hand_gesture': cam.final_hand_gesture,
+            "reloaded": cam.reloaded
         }
         
         # if cam.final_emotion:
         #     data["songs"] = list(Song.objects.filter(genre=cam.final_emotion).values())
-        
-
+      
         if ut.hasChanged(initial_data, data):
+            # print("Previous Hand Gesture: ", initial_data.get("final_hand_gesture", "None"))
+            # print("Final Hand Gesture:", cam.final_hand_gesture)
             initial_data = data
             data = json.dumps(data)
+            # cam.final_hand_gesture = None
             yield "\ndata: {} \n\n".format(data)
         time.sleep(1)
+
 
 class MesssageStreamView(View):
     @csrf_exempt
@@ -60,6 +68,7 @@ class MesssageStreamView(View):
         response = StreamingHttpResponse(event_stream())
         response["Content-Type"] = 'text/event-stream'
         return response
+
 
 # Page to play music
 def play(request):
@@ -76,8 +85,8 @@ def play(request):
 #     expression = getExpression(uri)
 #     return JsonResponse({"mood": expression})
 
+
 def fetch_songs(request):
-    print("Fetching Songs")
     if request.GET.get("emotion"):
         emotion = request.GET.get("emotion")
         paginator = Paginator(Song.filter.all(genre=emotion), 1)
