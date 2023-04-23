@@ -66,7 +66,6 @@ def detect_hands_and_landmarks(hand_bbox, hand_no=0):
     results = ct.hand_detect.process(img_rgb)
     lm_dict = {}
     if results.multi_hand_landmarks:
-        is_hand_detected = True
         hand = results.multi_hand_landmarks[hand_no]
         for ID, lm in enumerate(hand.landmark):
             h, w, c = hand_bbox.shape
@@ -134,6 +133,34 @@ def detect_hand_gesture(lm_dict):
 
 def get_hand_gesture_and_annotate(image, hand_bbox_coords):
     img_h, img_w, _ = image.shape
+
+    # Here we put the music control buttons after the music is played
+    controls = deepcopy(list(ct.play_prompts.keys()))
+    controls.remove("others")
+
+    y = int(0.85 * img_h), int(0.95 * img_h)
+    x_start = 0.1
+    xbox_w = int(0.1 * img_w)
+    gap = 0.04
+    x_coord = [(control,
+                (int((x_start * (i + 1) * img_w) + (gap * i * img_w)),
+                 int((x_start * (i + 1) * img_w) + xbox_w + (gap * i * img_w)))
+                ) for i, control in enumerate(controls)]
+
+    for control_name, x in x_coord:
+        control_img = cv2.imread(f"../../affective_computing_project/affective/gestures/{control_name}.JPG")
+        target_box = image[y[0]: y[1], x[0]: x[1]]
+        control_img = cv2.resize(control_img, target_box.shape[:2][::-1], interpolation=cv2.INTER_AREA)
+        image[y[0]: y[1], x[0]: x[1]] = control_img
+        cv2.rectangle(image, (x[0], y[0]), (x[1], y[1]), (255, 255, 0), 1)
+        image = cv2.putText(image,
+                            control_name,
+                            (int(x[0] + (0.02 * img_w)), int(y[1] + (0.03 * img_h))),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.80,
+                            (0, 0, 255),
+                            2,
+                            cv2.LINE_AA)
 
     # Extracting the bounding box of the hand_region
     hand_bbox = image[hand_bbox_coords[0][1]: hand_bbox_coords[1][1],
@@ -267,7 +294,8 @@ class VideoCamera(object):
                                 2,
                                 cv2.LINE_AA)
 
-        image = cv2.resize(image, None, fx=1.5, fy=1.5)  # resizing the video frame to 1080P
+        image = cv2.resize(image, None, fx=0.9, fy=0.9)  # resizing the video frame to 1080P
+        
         _, jpeg = cv2.imencode('.jpeg', image)
         return jpeg.tobytes()
 
