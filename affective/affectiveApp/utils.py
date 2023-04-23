@@ -66,7 +66,6 @@ def detect_hands_and_landmarks(hand_bbox, hand_no=0):
     results = ct.hand_detect.process(img_rgb)
     lm_dict = {}
     if results.multi_hand_landmarks:
-        is_hand_detected = True
         hand = results.multi_hand_landmarks[hand_no]
         for ID, lm in enumerate(hand.landmark):
             h, w, c = hand_bbox.shape
