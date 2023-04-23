@@ -54,7 +54,7 @@
                             <i class="fa fa-step-backward fa-2x"></i>
                         </a>
                          &nbsp; &nbsp; &nbsp; 
-                         <a id="play-next" href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }} {% endif %}">
+                         <a id="play-next" href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }} {% endif %}" >
                             <i class="fa fa-step-forward fa-2x"></i>
                         </a>
                     </center>
@@ -106,10 +106,7 @@
     }
     function playMusic(){
         const music = document.querySelector("#music-player > #music-player_html5")
-        console.log(music)
         if(music?.paused){
-            console.log("Playing Music")
-            debugger
             music.play()
         }
     }
@@ -127,8 +124,6 @@
     }
     function pauseMusic(){
         const music = document.querySelector("#music-player > #music-player_html5")
-
-        console.log(music)
         if(!music?.paused){
             music.pause()
         }
@@ -162,10 +157,13 @@
                 pauseMusic()
                 break
             case "next":
+                debugger
                 nextMusic()
+                playMusic()
                 break
             case "prev":
                 prevMusic()
+                playMusic()
                 break 
             case "volume_up":
                 incrementVolume()
@@ -180,47 +178,52 @@
                 break
             case "others":
                 debugger
-                
+
                 break
             default:
                 break
         }
     }
 
-    const eventsource = new EventSource("{% url 'message' %}")
+
+    {% comment %} const data = JSON.parse(e.data)
+    if(data?.reloaded
+     && data?.is_music_on
+      && !data?.final_emotion
+       && (!data?.final_hand_gesture || data?.final_hand_gesture == "play")){
+        debugger
+         {% endcomment %}
+
+function create_and_register_event(){
+    var eventsource = new EventSource("{% url 'message' %}")
+
     eventsource.onopen = () => {
         console.log("Event Source Open")
     }
-
     eventsource.onmessage = (e) => {
         console.log("Receiving message")
-        if(e.data){
+        if(e?.data){
             const data = JSON.parse(e.data)
-            console.log(data)
-            if(data.reloaded
-             && data.is_music_on
-              && !data.final_emotion
-               && (!data.final_hand_gesture || data.final_hand_gesture == "play")){
-                debugger
-                playMusic()   
-            }
-
-            if(data.final_emotion){
+            console.log("Data ", data)
+            if(data?.final_emotion){
                 location.reload() 
             }
-
             if(data.final_hand_gesture && data.is_music_on){
+                console.log("Final GEsture",data.final_hand_gesture)
+                debugger
                 handleGestures(data.final_hand_gesture)
             }
-        }
+        } 
     }
-    {% comment %} document.getElementById("emotion_text").innerHTML = data.final_emotion
-    document.getElementById("fetch_song").click() {% endcomment %}
-
     eventsource.onerror = (e) => {
         console.log("Error Message")
         console.log(e)
+        create_and_register_event()
     }
+}
+
+create_and_register_event()
+
 </script> 
 
  </body>

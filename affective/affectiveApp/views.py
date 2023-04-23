@@ -13,14 +13,24 @@ cam = ut.VideoCamera()
 
 
 def index(request):
+    page = request.GET.get('page')
     if cam and cam.final_emotion:
         cam.reloaded = True
         paginator = Paginator(Song.objects.filter(genre=cam.final_emotion), 1)
+        cam.final_hand_gesture = "play"  # To make the music play initially when fetched for the first time. 
         print("Sending Songs for emotion: ", cam.final_emotion)
         cam.final_emotion = None
         # cam.final_hand_gesture = None
     else:
         paginator = Paginator(Song.objects.all(), 1)
+        cam.reloaded = False
+        print("Sending all Songs")
+
+    if page:
+        cam.reloaded = False
+        cam.final_hand_gesture = "play"  # To make the music play initially when fetched for the first time. 
+        print("Fetching Next page song")
+
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {"page_obj": page_obj}
@@ -51,12 +61,13 @@ def event_stream():
         
         # if cam.final_emotion:
         #     data["songs"] = list(Song.objects.filter(genre=cam.final_emotion).values())
-        
-        print("Final Hand Gesture:", cam.final_hand_gesture)
-        print("Previous Hand Gesture: ", initial_data.get("final_hand_gesture", "None"))
+      
         if ut.hasChanged(initial_data, data):
+            # print("Previous Hand Gesture: ", initial_data.get("final_hand_gesture", "None"))
+            # print("Final Hand Gesture:", cam.final_hand_gesture)
             initial_data = data
             data = json.dumps(data)
+            # cam.final_hand_gesture = None
             yield "\ndata: {} \n\n".format(data)
         time.sleep(1)
 
@@ -86,7 +97,6 @@ def play(request):
 
 
 def fetch_songs(request):
-    print("Fetching Songs")
     if request.GET.get("emotion"):
         emotion = request.GET.get("emotion")
         paginator = Paginator(Song.filter.all(genre=emotion), 1)

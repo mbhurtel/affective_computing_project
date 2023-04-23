@@ -18,5 +18,6 @@ play_prompts = {
                 "stop": "Current song stopped!",
                 "next": "Playing next song for you. Enjoy...",
                 "prev": "Playing previous song for you. Enjoy...",
-                "reset": "Resetting the process..."
+                "reset": "Resetting the process...",
+                "others" : ""
                 }

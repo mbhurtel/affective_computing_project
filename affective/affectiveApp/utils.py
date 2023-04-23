@@ -144,7 +144,7 @@ def get_hand_gesture_and_annotate(image, hand_bbox_coords):
 
     # hand is detected then we check the hand_gesture
     if not lm_dict:
-        hand_gesture = "others"
+        hand_gesture = None
         hand_text_color = (0, 0, 255)
     else:
         hand_text_color = (0, 255, 0)
@@ -246,12 +246,11 @@ class VideoCamera(object):
 
         # We extract the isMusicPlaying flag from the frontend
         if self.is_music_on:
-            image, hand_gesture = get_hand_gesture_and_annotate(image)
-            # if hand_gesture != "others":
-            if len(self.hand_gesture_list) != self.fps * 1:
+            image, hand_gesture = get_hand_gesture_and_annotate(image, hand_bbox_coords)
+
+            if len(self.hand_gesture_list) != self.fps * 1 and hand_gesture:
                 self.hand_gesture_list.append(hand_gesture)
-                self.final_hand_gesture = None
-            else:
+            elif len(self.hand_gesture_list) == self.fps * 1:
                 self.final_hand_gesture = get_final_max_pred(self.hand_gesture_list)
                 self.hand_gesture_list = []
                 print(f"Your emotion is: {self.final_emotion}. Now playing music...")
