@@ -240,6 +240,7 @@ class VideoCamera(object):
             else:
                 self.final_emotion = get_final_max_pred(self.emotion_list)
                 self.is_music_on = True
+                self.final_hand_gesture = "play"
 
         if not self.final_emotion and not self.is_music_on:
             image = annotate_initials(image, len(faces), img_w, img_h)  # annotating the video frames for face detection

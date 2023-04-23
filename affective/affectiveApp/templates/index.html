@@ -50,11 +50,11 @@
                         </h1>
                     </div>
                     <center>
-                        <a id="play-prev" href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% endif %}">
+                        <a id="play-prev" disabled="{% if not page_obj.has_previous %}true{% endif %}" href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% endif %}">
                             <i class="fa fa-step-backward fa-2x"></i>
                         </a>
                          &nbsp; &nbsp; &nbsp; 
-                         <a id="play-next" href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }} {% endif %}" >
+                         <a id="play-next" disabled="{% if not page_obj.has_next %}true{% endif %}" href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }} {% endif %}" >
                             <i class="fa fa-step-forward fa-2x"></i>
                         </a>
                     </center>
@@ -112,13 +112,14 @@
     }
     function nextMusic(){
         nextBut = document.querySelector("#play-next")
-        if(nextBut){
+        if(nextBut && nextBut?.getAttribute("disabled") != "true"){
+
             nextBut.click()
         }
     }
     function prevMusic(){
         prevBut = document.querySelector("#play-prev")
-        if(prevBut){
+        if(prevBut && prevBut?.getAttribute("disabled") != "true"){
             prevBut.click()
         }
     }
@@ -157,7 +158,6 @@
                 pauseMusic()
                 break
             case "next":
-                debugger
                 nextMusic()
                 playMusic()
                 break
@@ -177,8 +177,6 @@
                 location.reload()
                 break
             case "others":
-                debugger
-
                 break
             default:
                 break
@@ -205,12 +203,11 @@ function create_and_register_event(){
         if(e?.data){
             const data = JSON.parse(e.data)
             console.log("Data ", data)
-            if(data?.final_emotion){
+            if(data?.final_emotion && !data?.is_music_on){
                 location.reload() 
             }
             if(data.final_hand_gesture && data.is_music_on){
-                console.log("Final GEsture",data.final_hand_gesture)
-                debugger
+                console.log("Final Gesture",data.final_hand_gesture)
                 handleGestures(data.final_hand_gesture)
             }
         } 
