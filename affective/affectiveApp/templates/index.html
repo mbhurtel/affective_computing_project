@@ -1,227 +1,204 @@
-
-
-
 {% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
- <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.25/webcam.js'></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/4.2.7/mediaelementplayer.min.css"
+      rel="stylesheet"
+    />
+    <link href="{% static './style.css' %}" rel="stylesheet" />
+    <title>Live Emotion Predictor with Music Recommender</title>
+  </head>
+  <body>
+    <header>
+      <div class="site-identity">
+        <a href="#"
+          ><img
+            src="https://home.howard.edu/themes/custom/hu_home/idfive-component-library/build/img/howard_social.png"
+            alt="howard logo"
+        /></a>
+      </div>
+      <h1>Interactive Music Recommendation system</h1>
+    </header>
 
-  <title>Live Web Camera</title>
-  <title>
-   My Music Player
-  </title>
-  <link href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet"/>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/4.2.7/mediaelementplayer.min.css" rel="stylesheet"/>
-  <link href="{% static './style.css' %}" rel="stylesheet"/>
- </head>
- <body>
-  <!-- partial:index.partial.html -->
-  <html>
-   <head>
-    <meta charset="utf-8"/>
-    <title>
-        Live Emotion Predictor with Music Recommender
-    </title>
-   </head>
-   <body>
     <div id="main">
-        <article>
-                {% comment %} <div id='imag
-                eCapture'></div> {% endcomment %}
-                <img src="{% url 'live_camera' %}">
-        </article> 
-        <aside>
-            <div class="music-player">
-               {% for item in page_obj %}
-                    <div class="cover">
-                        <img alt="" src="{{item.image.url}}"/>
-                    </div>
-                    <div class="titre">
-                        <h3>
-                        {{item.artist}}
-                        </h3>
-                        <h1>
-                        {{item.title}}
-                        </h1>
-                    </div>
-                    <center>
-                        <a id="play-prev" disabled="{% if not page_obj.has_previous %}true{% endif %}" href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% endif %}">
-                            <i class="fa fa-step-backward fa-2x"></i>
-                        </a>
-                         &nbsp; &nbsp; &nbsp; 
-                         <a id="play-next" disabled="{% if not page_obj.has_next %}true{% endif %}" href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }} {% endif %}" >
-                            <i class="fa fa-step-forward fa-2x"></i>
-                        </a>
-                    </center>
-                    <div class="lecteur">
-                        <audio class="fc-media" style="width: 100%;" id="music-player" volume="0.3">
-                            <source src="{% if item.audio_file %}{{item.audio_file.url}} {% else %} {{item.audio_link}} {% endif %}" type="audio/mp3"/>
-                        </audio>
-                    </div>
-            {% endfor %} 
-            </div>
-        </aside>
+      <article>
+        {% comment %}
+        <div
+          id="imag
+                    eCapture"
+        ></div>
+        {% endcomment %}
+        <img src="{% url 'live_camera' %}" />
+      </article>
+      <aside>
+        <div class="music-player">
+          {% for item in page_obj %}
+          <div class="cover">
+            <img alt="" src="{{item.image.url}}" />
+          </div>
+          <div class="title">
+            <h3>{{item.artist}}</h3>
+            <h1>{{item.title}}</h1>
+          </div>
+          <center>
+            <a
+              id="play-prev"
+              disabled="{% if not page_obj.has_previous %}true{% endif %}"
+              href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% endif %}"
+            >
+              <i class="fa fa-step-backward fa-2x"></i>
+            </a>
+            &nbsp; &nbsp; &nbsp;
+            <a
+              id="play-next"
+              disabled="{% if not page_obj.has_next %}true{% endif %}"
+              href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }} {% endif %}"
+            >
+              <i class="fa fa-step-forward fa-2x"></i>
+            </a>
+          </center>
+          <div class="lecteur">
+            <audio
+              class="fc-media"
+              style="width: 100%"
+              id="music-player"
+              volume="0.3"
+            >
+              <source
+                src="{% if item.audio_file %}{{item.audio_file.url}} {% else %} {{item.audio_link}} {% endif %}"
+                type="audio/mp3"
+              />
+            </audio>
+          </div>
+          {% endfor %}
         </div>
-        <form action="{% url 'fetch_song' %}"  style="display :none;" method="GET"> 
-            <input name="emotion" id="emotion_text" style="display :none;">
-            <button id="fetch_song" type="button" value="Click" style="display: none;"/>
-        </form>
+      </aside>
     </div>
-   </body>
-  </html>
-  <!-- partial -->
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/4.2.7/mediaelement-and-player.min.js"></script> 
-  <script src="{% static './script.js' %}">
-  </script>
-<script>  
-   
 
-    {% comment %} const m = music.getElementById("music-player_html5") {% endcomment %}
+    <footer>
+      <h3>
+        Semester project for Affective Computing - Spring 2023 by Manish Bhurtel
+        and Sanjeev Roka
+      </h3>
+    </footer>
 
-    const createContent = (item) => {
-        return `<div class="cover">
-                    <img alt="" src="${item.image}"/>
-                </div>
-                <div class="titre">
-                    <h3>
-                    ${item.artist}
-                    </h3>s
-                    <h1>
-                    ${item.title}
-                    </h1>
-                </div>
-                <center><a href="${ item.has_previous ? '?page=' + item.previous_page_number :""}><i class="fa fa-step-backward fa-2x"></i></a> &nbsp; &nbsp; &nbsp; <a href="${ item.has_next ? '?page=' + item.next_page_number : ""}"><i class="fa fa-step-forward fa-2x"></i></a></center>
-                <div class="lecteur">
-                    <audio class="fc-media" style="width: 100%;" id="music-player" muted="muted">
-                        <source src="${ item.audio_file ? item.audio_file.url : item.audio_link}" type="audio/mp3"/>
-                    </audio>
-                </div>
-                `
-    }
-    function playMusic(){
-        const music = document.querySelector("#music-player > #music-player_html5")
-        if(music?.paused){
-            music.play()
-        }
-    }
-    function nextMusic(){
-        nextBut = document.querySelector("#play-next")
-        if(nextBut && nextBut?.getAttribute("disabled") != "true"){
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/4.2.7/mediaelement-and-player.min.js"></script>
+    <script src="{% static './script.js' %}"></script>
+    <script>
+      function playMusic(){
+          const music = document.querySelector("#music-player > #music-player_html5")
+          if(music?.paused){
+          music.play()
+      }
+      }
+          function nextMusic(){
+          nextBut = document.querySelector("#play-next")
+          if(nextBut && nextBut?.getAttribute("disabled") != "true"){
+              nextBut.click()
+          }
+      }
+      function prevMusic(){
+          prevBut = document.querySelector("#play-prev")
+          if(prevBut && prevBut?.getAttribute("disabled") != "true"){
+              prevBut.click()
+          }
+      }
+      function pauseMusic(){
+          const music = document.querySelector("#music-player > #music-player_html5")
+          if(!music?.paused){
+              music.pause()
+          }
+      }
 
-            nextBut.click()
-        }
-    }
-    function prevMusic(){
-        prevBut = document.querySelector("#play-prev")
-        if(prevBut && prevBut?.getAttribute("disabled") != "true"){
-            prevBut.click()
-        }
-    }
-    function pauseMusic(){
-        const music = document.querySelector("#music-player > #music-player_html5")
-        if(!music?.paused){
-            music.pause()
-        }
-    }
-
-    function incrementVolume(){
+      function incrementVolume(){
         const music = document.querySelector("#music-player > #music-player_html5")
         if(music){
             const newVol = music.volume + 0.2
-            music.volume = newVol >= 1 ? 1 : newVol        
+            music.volume = newVol >= 1 ? 1 : newVol
         }
-    }
+      }
 
-    function decrementVolume(){
+      function decrementVolume(){
         const music = document.querySelector("#music-player > #music-player_html5")
         if(music){
             const newVol = music.volume - 0.2
             music.volume = newVol <= 0 ? 0 : newVol
         }
-    }
+      }
 
-    const handleGestures = (gesture) => {
+      const handleGestures = (gesture) => {
         switch(gesture){
-            case "play":
-                playMusic()
-                break
-            case "pause":
-                pauseMusic()
-                break
-            case "stop":
-                pauseMusic()
-                break
-            case "next":
-                nextMusic()
-                playMusic()
-                break
-            case "prev":
-                prevMusic()
-                playMusic()
-                break 
-            case "volume_up":
-                incrementVolume()
-                break
-            case "volume_down":
-                decrementVolume()
-                break
-            case "reset":
-                initialExpression = ""
-                initialHandGesture = ""
-                location.reload()
-                break
-            case "others":
-                break
-            default:
-                break
+        case "play":
+            playMusic()
+            break
+        case "pause":
+            pauseMusic()
+            break
+        case "stop":
+            pauseMusic()
+            break
+        case "next":
+            nextMusic()
+            playMusic()
+            break
+        case "prev":
+            prevMusic()
+            playMusic()
+            break
+        case "volume_up":
+            incrementVolume()
+            break
+        case "volume_down":
+            decrementVolume()
+            break
+        case "reset":
+            window.location.href = window.location.origin
+            break
+        case "others":
+            break
+        default:
+            break
         }
-    }
+      }
 
-
-    {% comment %} const data = JSON.parse(e.data)
-    if(data?.reloaded
-     && data?.is_music_on
-      && !data?.final_emotion
-       && (!data?.final_hand_gesture || data?.final_hand_gesture == "play")){
-        debugger
-         {% endcomment %}
-
-function create_and_register_event(){
-    var eventsource = new EventSource("{% url 'message' %}")
-
-    eventsource.onopen = () => {
-        console.log("Event Source Open")
-    }
-    eventsource.onmessage = (e) => {
-        console.log("Receiving message")
-        if(e?.data){
-            const data = JSON.parse(e.data)
-            console.log("Data ", data)
-            if(data?.final_emotion && !data?.is_music_on){
-                location.reload() 
+      function create_and_register_event(){
+        var eventsource = new EventSource("{% url 'message' %}")
+        eventsource.onopen = () => {
+            console.log("Event Source Open")
+        }
+        eventsource.onmessage = (e) => {
+            console.log("Receiving message")
+            if(e?.data){
+                const data = JSON.parse(e.data)
+                console.log("Data ", data)
+                if(data?.final_emotion && (!data?.is_music_on || !data.reloaded)){
+                    debugger
+                    window.location.href = window.location.origin
+                }
+                if(data.final_hand_gesture && data.is_music_on){
+                    console.log("Final Gesture",data.final_hand_gesture)
+                    handleGestures(data.final_hand_gesture)
+                }
             }
-            if(data.final_hand_gesture && data.is_music_on){
-                console.log("Final Gesture",data.final_hand_gesture)
-                handleGestures(data.final_hand_gesture)
-            }
-        } 
-    }
-    eventsource.onerror = (e) => {
-        console.log("Error Message")
-        console.log(e)
-        create_and_register_event()
-    }
-}
+        }
+        eventsource.onerror = (e) => {
+            console.log("Error Message")
+            console.log(e)
+            create_and_register_event()
+        }
+      }
 
-create_and_register_event()
-
-</script> 
-
- </body>
+      create_and_register_event()
+    </script>
+  </body>
 </html>
