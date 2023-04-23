@@ -295,6 +295,7 @@ class VideoCamera(object):
                                 cv2.LINE_AA)
 
         image = cv2.resize(image, None, fx=0.9, fy=0.9)  # resizing the video frame to 1080P
+        
         _, jpeg = cv2.imencode('.jpeg', image)
         return jpeg.tobytes()
 

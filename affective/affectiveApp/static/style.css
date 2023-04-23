@@ -27,7 +27,7 @@ h3 {
     height: 750px;
     margin: auto;
     overflow: hidden;
-    background-image: url("https://mariongrandvincent.github.io/HTML-Personal-website/img-codePen/bg-music-player.jpg");
+    /* background-image: url("https://mariongrandvincent.github.io/HTML-Personal-website/img-codePen/bg-music-player.jpg"); */
     background-repeat: repeat;
     background-size: cover;
 }
@@ -37,7 +37,7 @@ h3 {
     width: 400px;
     height: 570px;
     margin: auto;
-    margin-top: 6%;
+    margin-top: 20%;
     border-radius: 0 0 10px 10px;
     background: transparent linear-gradient(to bottom,rgba(10,11,31,0.9) 50%,rgb(10,11,31) 70%) repeat scroll 0 0;
     box-shadow: 1px 10px 20px 5px #222;
@@ -51,12 +51,12 @@ h3 {
     display: block;
     position: absolute;
     top: 8%;
-    left: 14%;
-    width: 70%;
+    left: 10%;
+    width: 80%;
     margin: auto;
     text-align: center;
 }
-.titre {
+.title {
     float: left;
     width: 100%;
 }
@@ -247,27 +247,83 @@ h3 {
   #main {
     display: flex;
     flex: 1;
+    /* background-image: url("https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Howard_Bison_wordmark.svg/2560px-Howard_Bison_wordmark.svg.png"); */
+
   }
   #main > article {
     flex: 1;
     order: 1;
+    /* background: transparent linear-gradient(to bottom,rgba(186, 190, 159, 0.9) 50%,rgb(147, 151, 131) 70%) repeat scroll 0 0; */
+
   }
+  article > img{
+    display: block;
+    position: relative;
+    width: 90%;
+    height: 90%;
+    margin: auto;
+    margin-top: 3%;
+    border-radius: 0 0 10px 10px;
+    /* background: transparent linear-gradient(to bottom,rgba(10,11,31,0.9) 50%,rgb(10,11,31) 70%) repeat scroll 0 0; */
+    box-shadow: 1px 5px 10px 1px #222;
+  }
+
   #main > nav, 
   #main > aside {
     flex: 0 0 20vw;
   }
   #main > nav {
-    background: #D7E8D4;
+    /* background: #D7E8D4; */
     order: 3;
   }
   #main > aside {
-    background: beige;
+    /* background: beige; */
     order: 2;
   }
-  header, footer {
-    background: yellowgreen;
-    height: 20vh;
+  header {
+    height: 10vh;
+    background-color: rgb(186, 186, 186); 
+    text-align:center; 
+
   }
+  
   header, footer, article, nav, aside {
     padding: 1em;
   }
+
+  .site-identity {
+    float: left;
+  }
+
+
+footer  { 
+    position: left; 
+    clear: both; 
+    color: #ffffff; 
+    background-color: rgb(75, 75, 75); 
+    text-align:center; 
+    /* 	height: 50px;	 */ 
+    font-size: 80%; 
+    margin-left:-100%; 
+    margin-right:-100%; 
+    padding: 18px 0; 
+} 
+
+  header > h1{
+    color: #fcfbfb;
+    margin: auto;
+    margin-top: 15px;
+
+  }
+  footer > h2{
+    color: #fcfbfb;
+    margin: 10px 0px 0 0;
+
+  }
+  .site-identity > a > img {
+    max-width: 13vh;
+    margin: auto;
+    margin-left: 20px;
+  }
+
+  
