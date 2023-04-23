@@ -12,16 +12,28 @@ from django.views import View
 cam = ut.VideoCamera()
 
 def index(request):
+    global cam
+    if cam.final_hand_gesture and cam.final_hand_gesture == "reset":
+        cam = ut.VideoCamera()
+        request.GET._mutable = True
+        request.GET.pop("page", "")
+        request.GET._mutable = False
+
     page_number = request.GET.get('page')
+
+    print("Cam Final Emotion", cam.final_emotion)
+
     if (cam and cam.final_emotion):
+        cam.reloaded = True
         paginator = Paginator(Song.objects.filter(genre=cam.final_emotion), 1)
         cam.final_hand_gesture = "play"  # To make the music play initially when fetched for the first time. 
         print("Sending Songs for emotion: ", cam.final_emotion)
     else:
+        cam = ut.VideoCamera()
         paginator = Paginator(Song.objects.all(), 1)
         # cam.reloaded = False
         print("Sending all Songs")
-
+    print(page_number)
     page_obj = paginator.get_page(page_number)
     context = {"page_obj": page_obj}
     return render(request, "index.html", context=context)
