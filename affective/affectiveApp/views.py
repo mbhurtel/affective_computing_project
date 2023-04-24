@@ -29,13 +29,11 @@ def index(request):
         cam.final_hand_gesture = "play"  # To make the music play initially when fetched for the first time. 
         print("Sending Songs for emotion: ", cam.final_emotion)
     else:
-        cam = ut.VideoCamera()
         paginator = Paginator(Song.objects.all(), 1)
-        # cam.reloaded = False
         print("Sending all Songs")
-    print(page_number)
     page_obj = paginator.get_page(page_number)
-    context = {"page_obj": page_obj}
+    num_pages = paginator.num_pages
+    context = {"page_obj": page_obj, 'total': num_pages, 'current_page' :  page_number if page_number else 1}
     return render(request, "index.html", context=context)
 
 

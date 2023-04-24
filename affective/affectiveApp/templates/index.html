@@ -42,43 +42,47 @@
       <aside>
         <div class="music-player">
           {% for item in page_obj %}
-          <div class="cover">
-            <img alt="" src="{{item.image.url}}" />
-          </div>
-          <div class="title">
-            <h3>{{item.artist}}</h3>
-            <h1>{{item.title}}</h1>
-          </div>
-          <center>
-            <a
-              id="play-prev"
-              disabled="{% if not page_obj.has_previous %}true{% endif %}"
-              href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% endif %}"
-            >
-              <i class="fa fa-step-backward fa-2x"></i>
-            </a>
-            &nbsp; &nbsp; &nbsp;
-            <a
-              id="play-next"
-              disabled="{% if not page_obj.has_next %}true{% endif %}"
-              href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }} {% endif %}"
-            >
-              <i class="fa fa-step-forward fa-2x"></i>
-            </a>
-          </center>
-          <div class="lecteur">
-            <audio
-              class="fc-media"
-              style="width: 100%"
-              id="music-player"
-              volume="0.3"
-            >
-              <source
-                src="{% if item.audio_file %}{{item.audio_file.url}} {% else %} {{item.audio_link}} {% endif %}"
-                type="audio/mp3"
-              />
-            </audio>
-          </div>
+            <div class="cover">
+              <img alt="" src="{{item.image.url}}" />
+            </div>
+            <div class="title">
+              <h3>{{item.artist}}</h3>
+              <h1>{{item.title}}</h1>
+            </div>
+            <center>
+              <a
+                id="play-prev"
+                disabled="{% if not page_obj.has_previous %}true{% endif %}"
+                href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% endif %}"
+              >
+                <i class="fa fa-step-backward fa-2x"></i>
+              </a>
+              &nbsp; &nbsp; &nbsp;
+              <a
+                id="play-next"
+                disabled="{% if not page_obj.has_next %}true{% endif %}"
+                href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }} {% endif %}"
+              >
+                <i class="fa fa-step-forward fa-2x"></i>
+              </a>
+            </center>
+            <div class="lecteur">
+              <audio
+                class="fc-media"
+                style="width: 100%"
+                id="music-player"
+                volume="0.3">
+                <source
+                  src="{% if item.audio_file %}{{item.audio_file.url}} {% else %} {{item.audio_link}} {% endif %}"
+                  type="audio/mp3"
+                />
+              </audio>
+            </div>
+            {% if total %}
+                <center class="title">
+                  <h3>{{ current_page }} / {{ total }} </h3>
+                <center>
+            {% endif %}
           {% endfor %}
         </div>
       </aside>
