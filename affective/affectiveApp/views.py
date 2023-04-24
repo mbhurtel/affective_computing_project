@@ -8,13 +8,16 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import time
 from django.views import View
+import platform
 
 cam = ut.VideoCamera()
 
 def index(request):
     global cam
+    print("Cam Object", cam)
     if cam.final_hand_gesture and cam.final_hand_gesture == "reset":
-        cam.video.release()
+        if platform.system() == "Windows":
+            cam.video.release()
         cam = ut.VideoCamera()
         request.GET._mutable = True
         request.GET.pop("page", "")
