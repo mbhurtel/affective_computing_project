@@ -196,8 +196,17 @@ def get_hand_gesture_and_annotate(image, hand_bbox_coords):
                           thickness=3)
 
     image = cv2.putText(image,
+                        "Hand Gestures Here:",
+                        (int(hand_bbox_coords[0][0]), int(hand_bbox_coords[0][1] - (0.04 * img_h))),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        1,
+                        (255, 0, 0),
+                        2,
+                        cv2.LINE_AA)
+
+    image = cv2.putText(image,
                         hand_gesture,
-                        (int(hand_bbox_coords[0][0]), int(hand_bbox_coords[0][1] - (0.05 * img_h))),
+                        (int(hand_bbox_coords[0][0] + (0.1*img_w)), int(hand_bbox_coords[1][1] + (0.04 * img_h))),
                         cv2.FONT_HERSHEY_SIMPLEX,
                         1,
                         (0, 255, 0),
@@ -288,9 +297,9 @@ class VideoCamera(object):
         if self.is_music_on:
             image, hand_gesture = get_hand_gesture_and_annotate(image, hand_bbox_coords)
 
-            if len(self.hand_gesture_list) != self.fps * 1 and hand_gesture:
+            if len(self.hand_gesture_list) != 25 and hand_gesture:
                 self.hand_gesture_list.append(hand_gesture)
-            elif len(self.hand_gesture_list) == self.fps * 1:
+            elif len(self.hand_gesture_list) == 25:
                 self.final_hand_gesture = get_final_max_pred(self.hand_gesture_list)
                 self.hand_gesture_list = []
                 print(f"Your emotion is: {self.final_emotion}. Now playing music...")
