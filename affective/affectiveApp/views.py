@@ -71,7 +71,8 @@ def event_stream():
             # print("Final Hand Gesture:", cam.final_hand_gesture)
             initial_data = data
             data = json.dumps(data)
-            # cam.final_hand_gesture = None
+            if cam.final_hand_gesture == "vUp" or cam.final_hand_gesture == "vDown":
+                cam.final_hand_gesture = None
             yield "\ndata: {} \n\n".format(data)
         time.sleep(1)
 
