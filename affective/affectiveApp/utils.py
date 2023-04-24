@@ -40,17 +40,16 @@ def preprocess_image(img):
 
 
 def detect_facial_emotion(clone, faces):
-    # TODO: Facial Emotion Recognition Code Here
     emotion_list = []
     for face in faces:
         # face_image = clone[face.top():face.bottom(), face.left():face.right()]
         face_image = clone[face[2]:face[3], face[0]:face[1]]
         # print(face_image)
-        if len(face_image):
-            img = preprocess_image(face_image)
-            predicted_emotion = ct.emotion_detector.predict(img, verbose=False)
-            emotion = ct.emotions_classes[np.argmax(predicted_emotion)]
-            emotion_list.append(emotion)
+        # if len(face_image):
+        img = preprocess_image(face_image)
+        predicted_emotion = ct.emotion_detector.predict(img, verbose=False)
+        emotion = ct.emotions_classes[np.argmax(predicted_emotion)]
+        emotion_list.append(emotion)
     return emotion_list
 
 
@@ -138,7 +137,7 @@ def get_hand_gesture_and_annotate(image, hand_bbox_coords):
     controls = deepcopy(list(ct.play_prompts.keys()))
     controls.remove("others")
 
-    y = int(0.85 * img_h), int(0.95 * img_h)
+    y = int(0.83 * img_h), int(0.95 * img_h)
     x_start = 0.1
     xbox_w = int(0.1 * img_w)
     gap = 0.04
@@ -148,7 +147,7 @@ def get_hand_gesture_and_annotate(image, hand_bbox_coords):
                 ) for i, control in enumerate(controls)]
 
     for control_name, x in x_coord:
-        control_img = cv2.imread(f"../../affective_computing_project/affective/gestures/{control_name}.JPG")
+        control_img = cv2.imread(f"./gestures/{control_name}.JPG")
         target_box = image[y[0]: y[1], x[0]: x[1]]
         control_img = cv2.resize(control_img, target_box.shape[:2][::-1], interpolation=cv2.INTER_AREA)
         image[y[0]: y[1], x[0]: x[1]] = control_img
@@ -157,7 +156,7 @@ def get_hand_gesture_and_annotate(image, hand_bbox_coords):
                             control_name,
                             (int(x[0] + (0.02 * img_w)), int(y[1] + (0.03 * img_h))),
                             cv2.FONT_HERSHEY_SIMPLEX,
-                            0.80,
+                            0.88,
                             (0, 0, 255),
                             2,
                             cv2.LINE_AA)
@@ -228,7 +227,6 @@ class VideoCamera(object):
 
         self.fps = self.video.get(cv2.CAP_PROP_FPS)
 
-        self.start_face_count = 0
         self.emotion_list = []
         self.final_emotion = None
         self.is_music_on = False
@@ -262,8 +260,9 @@ class VideoCamera(object):
             # We check the final emotions every 5 seconds
             if not len(self.emotion_list) == self.fps * 2:
                 image, faces = detect_faces(deepcopy(image))  # detecting number of faces
-                frame_emotions = detect_facial_emotion(deepcopy(image), faces)
-                self.emotion_list += frame_emotions
+                if faces:
+                    frame_emotions = detect_facial_emotion(deepcopy(image), faces)
+                    self.emotion_list += frame_emotions
             else:
                 self.final_emotion = get_final_max_pred(self.emotion_list)
                 self.is_music_on = True
@@ -287,15 +286,24 @@ class VideoCamera(object):
             play_text = ct.play_prompts[self.final_hand_gesture]
             image = cv2.putText(image,
                                 play_text,
-                                (int(0.06 * img_w), int(0.1 * img_h)),
+                                (int(0.06 * img_w), int(0.14 * img_h)),
                                 cv2.FONT_HERSHEY_SIMPLEX,
                                 1,
                                 (255, 0, 0),
                                 2,
                                 cv2.LINE_AA)
 
+            image = cv2.putText(image,
+                                f"{self.final_emotion.capitalize()} Emotion Detected",
+                                (int(0.06 * img_w), int(0.08 * img_h)),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                1,
+                                (0, 255, 10),
+                                2,
+                                cv2.LINE_AA)
+
         image = cv2.resize(image, None, fx=0.9, fy=0.9)  # resizing the video frame to 1080P
-        
+
         _, jpeg = cv2.imencode('.jpeg', image)
         return jpeg.tobytes()
 
@@ -306,7 +314,10 @@ class VideoCamera(object):
 
 def gen(camera):
     while True:
-        frame = camera.get_frame()
+        try:
+            frame = camera.get_frame()
+        except:
+            pass
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
