@@ -79,6 +79,7 @@ def detect_hands_and_landmarks(hand_bbox, hand_no=0):
 def detect_hand_gesture(lm_dict):
     check_play_stop = []
     check_thumbs_prev_next = []
+    check_vol_up_down = []
     check_pause = []
     check_reset = []
     for ID, (_, cy) in lm_dict.items():
@@ -93,18 +94,24 @@ def detect_hand_gesture(lm_dict):
             else:
                 check_thumbs_prev_next.append(False)
 
-        if lm_dict[6][1] > lm_dict[7][1] > lm_dict[8][1]:
-            if ID not in [6, 7, 8]:
-                if lm_dict[ID][1] > lm_dict[6][1]:
-                    check_pause.append(True)
-                else:
-                    check_pause.append(False)
+        if ID not in [8]:
+            if lm_dict[ID][1] > lm_dict[8][1]:
+                check_vol_up_down.append(True)
+            else:
+                check_vol_up_down.append(False)
 
         if ID != 12:
             if lm_dict[ID][1] > lm_dict[12][1]:
                 check_reset.append(True)
             else:
                 check_reset.append(False)
+
+        if lm_dict[12][1] < lm_dict[8][1] and lm_dict[12][0] > lm_dict[8][0]:
+            if ID not in [8, 12]:
+                if lm_dict[ID][1] > lm_dict[8][1]:
+                    check_pause.append(True)
+                else:
+                    check_pause.append(False)
 
     hand_gesture = ""
     if check_play_stop:
@@ -119,13 +126,19 @@ def detect_hand_gesture(lm_dict):
         if not any(check_thumbs_prev_next):
             hand_gesture = "next"  # thumbs right
 
+    if check_vol_up_down:
+        if all(check_vol_up_down):
+            hand_gesture = "vUp"  # fore finger up
+        if not any(check_vol_up_down):
+            hand_gesture = "vDown"  # fore finger down
+
     if check_pause:
         if all(check_pause):
-            hand_gesture = "pause"  # only fore finger up
+            hand_gesture = "pause"
 
     if check_reset:
-        if all(check_reset):
-            hand_gesture = "reset"  # talk to my hands
+        if all(check_reset) and lm_dict[16][1] < lm_dict[11][1]:
+            hand_gesture = "reset"
 
     return hand_gesture
 
@@ -138,8 +151,8 @@ def get_hand_gesture_and_annotate(image, hand_bbox_coords):
     controls.remove("others")
 
     y = int(0.83 * img_h), int(0.95 * img_h)
-    x_start = 0.1
-    xbox_w = int(0.1 * img_w)
+    x_start = 0.07
+    xbox_w = int(0.09 * img_w)
     gap = 0.04
     x_coord = [(control,
                 (int((x_start * (i + 1) * img_w) + (gap * i * img_w)),

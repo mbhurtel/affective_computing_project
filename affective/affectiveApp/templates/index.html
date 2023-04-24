@@ -127,7 +127,7 @@
       function incrementVolume(){
         const music = document.querySelector("#music-player > #music-player_html5")
         if(music){
-            const newVol = music.volume + 0.2
+            const newVol = music.volume + 0.6
             music.volume = newVol >= 1 ? 1 : newVol
         }
       }
@@ -135,7 +135,7 @@
       function decrementVolume(){
         const music = document.querySelector("#music-player > #music-player_html5")
         if(music){
-            const newVol = music.volume - 0.2
+            const newVol = music.volume - 0.6
             music.volume = newVol <= 0 ? 0 : newVol
         }
       }
@@ -159,10 +159,10 @@
             prevMusic()
             playMusic()
             break
-        case "volume_up":
+        case "vUp":
             incrementVolume()
             break
-        case "volume_down":
+        case "vDown":
             decrementVolume()
             break
         case "reset":

@@ -18,6 +18,8 @@ play_prompts = {
                 "stop": "Current song stopped!",
                 "next": "Playing next song for you. Enjoy...",
                 "prev": "Playing previous song for you. Enjoy...",
+                "vUp": "Volume increased. Playing song...",
+                "vDown": "Volume decreased. Playing song...",
                 "reset": "Resetting the process...",
                 "others" : ""
                 }
